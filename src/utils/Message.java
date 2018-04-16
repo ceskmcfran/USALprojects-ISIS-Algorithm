@@ -2,7 +2,7 @@ package utils;
 
 public class Message {
 	//Atributos del mensaje
-	private int id;
+	private String id;
 	private String content;
 	private String state;
 	private int order;
@@ -17,7 +17,7 @@ public class Message {
 		
 	}
 	//Constructor con parámetros
-	public Message(int id, String content, String state, int order, int proposedOrder){
+	public Message(String id, String content, String state, int order, int proposedOrder){
 		this.id=id;
 		this.content=content;
 		this.state=state;
@@ -28,7 +28,7 @@ public class Message {
 	/*Setters y Getter de la clase Message*/
 	//Setters
 	
-	public void setId(int id){
+	public void setId(String id){
 		this.id=id;
 	}
 	
@@ -51,7 +51,7 @@ public class Message {
 	
 	//Getters
 	
-	public int getId(){
+	public String getId(){
 		return this.id;
 	}
 	
