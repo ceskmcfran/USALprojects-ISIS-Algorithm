@@ -1,10 +1,12 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class Tail {
 	//Arraylist para guardar mensajes
-	public ArrayList<Message> tail;
+	private ArrayList<Message> tail;
 	
 	//Constructor
 	public Tail(){
@@ -12,6 +14,16 @@ public class Tail {
 		tail = new ArrayList<Message>();
 		
 	}
+	
+	//Setter
+	public void setTailList(ArrayList<Message> tailList) {
+		  this.tail = tailList;
+		}
+	
+	//Getter
+    public ArrayList<Message> getTailList() {
+		    return tail;
+		  }
 	
 	//Método para añadir mensaje
 	public void addToTail(Message msg){
@@ -36,7 +48,7 @@ public class Tail {
 	public void listMessages(){
 		for(int i =0; i< tail.size();i++){
 			Message msg = tail.get(i);
-			System.out.println("\nMessage ID:"+ msg.getId()+ "State:" + msg.getState()+ "Order:" + msg.getOrder());
+			System.out.println("\nMessage ID: "+ msg.getId()+ " State: " + msg.getState()+ " Order: " + msg.getOrder());
 			
 		}
 	}
@@ -61,6 +73,23 @@ public class Tail {
 		
 		
 	}
+	
+	//Reordenación de la cola
+	public void reorderTail(){
+		Collections.sort(tail,tailComparator);
+	}
+	
+    public static Comparator<Message> tailComparator = new Comparator<Message>() {
+    	public int compare(Message x, Message y){
+    		
+    		return new Integer(x.getOrder()).compareTo(new Integer(y.getOrder()));
+    		
+    		
+    	}
+    };
+    
+    
+
 
 
 
