@@ -1,7 +1,6 @@
 package comparators;
 
 import java.util.Comparator;
-
 import utils.Message;
 
 public class CompareOrder implements Comparator<Message>{

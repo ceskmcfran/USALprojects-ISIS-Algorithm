@@ -3,7 +3,6 @@ package utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
 import comparators.CompareOrder;
 
 public class Tail {
@@ -72,11 +71,4 @@ public class Tail {
 	public void reorderTail(){
 		Collections.sort(tail,new CompareOrder());
 	}
-	
-
-    
-
-
-
-
 }
