@@ -1,4 +1,4 @@
-package threads;
+package controllers;
 
 public class Server {
 	//Levanto las 3 instancias de los servidores dependiendo de los parametros que me pase el "main-cliente-script"

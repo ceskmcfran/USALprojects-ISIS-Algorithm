@@ -1,4 +1,4 @@
-package threads;
+package controllers;
 
 import java.util.concurrent.ThreadLocalRandom;
 
