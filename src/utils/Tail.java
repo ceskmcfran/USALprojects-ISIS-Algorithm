@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import comparators.CompareOrder;
+
 public class Tail {
 	//Arraylist para guardar mensajes
 	private ArrayList<Message> tail;
@@ -11,19 +13,18 @@ public class Tail {
 	//Constructor
 	public Tail(){
 		//Creamos el ArrayList
-		tail = new ArrayList<Message>();
-		
+		tail = new ArrayList<Message>();	
 	}
 	
 	//Setter
 	public void setTailList(ArrayList<Message> tailList) {
 		  this.tail = tailList;
-		}
+	}
 	
 	//Getter
     public ArrayList<Message> getTailList() {
 		    return tail;
-		  }
+	}
 	
 	//Método para añadir mensaje
 	public void addToTail(Message msg){
@@ -33,8 +34,7 @@ public class Tail {
 	//Método para obtener mensaje
 	public Message getFromTail(){
 		Message msg = tail.get(0);
-		return msg;
-		
+		return msg;	
 	}
 	
 	//Método para extraer un mensaje de la cola, quedando por tanto eliminado
@@ -49,7 +49,6 @@ public class Tail {
 		for(int i =0; i< tail.size();i++){
 			Message msg = tail.get(i);
 			System.out.println("\nMessage ID: "+ msg.getId()+ " State: " + msg.getState()+ " Order: " + msg.getOrder());
-			
 		}
 	}
 	
@@ -61,33 +60,20 @@ public class Tail {
 	//Método para obtener un mensaje específico mediante id de la cola
 	public Message getSpecificMessage(String id){
 		Message msg = new Message();
-		//mirar bien este if tengo dudas de si funcionaria
 		for(int i=0;i<tail.size();i++){
 			if (tail.get(i).getId().equals(id)){
 				msg=tail.get(i);
 			}
-	
-		}//fin for
-		
+		}
 		return msg;
-		
-		
 	}
 	
 	//Reordenación de la cola
 	public void reorderTail(){
-		Collections.sort(tail,tailComparator);
+		Collections.sort(tail,new CompareOrder());
 	}
 	
-    public static Comparator<Message> tailComparator = new Comparator<Message>() {
-    	public int compare(Message x, Message y){
-    		
-    		return new Integer(x.getOrder()).compareTo(new Integer(y.getOrder()));
-    		
-    		
-    	}
-    };
-    
+
     
 
 
