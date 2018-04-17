@@ -41,7 +41,7 @@ public class Message {
 		
 	}
 	
-	public void setOrder (int Order){
+	public void setOrder (int order){
 		this.order=order;
 	}
 	
