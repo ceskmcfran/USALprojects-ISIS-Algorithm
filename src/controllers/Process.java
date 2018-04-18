@@ -12,7 +12,8 @@ public class Process extends Thread{
 	private double timestamp; //Timestamp to lampard algorithm
 	private String messageContent = "Soy " + id + " mi mensaje es "; //Content of the message
 	
-	public Process() {
+	public Process(String id) {
+		this.id = id;
 		///////tail = new Tail();
 	}
 	
@@ -23,7 +24,7 @@ public class Process extends Thread{
 			//Crear un identificador único de mensaje mediante el numero de mensaje y el identificador de proceso
 			String idMessage = "P" + id + " " + i; //<P(id) i>
 			messageContent = messageContent + idMessage;
-			Message message = new Message(idMessage, messageContent, "PROVISIONAL", proposedOrder);
+			Message message = new Message(idMessage, messageContent, "PROVISIONAL", order, proposedOrder);
 			
 			//Multidifundir el mensaje ‘Pxx nnn’ donde xx es el identificador de proceso y nnn el número de mensaje
 			Multicast multicast = new Multicast(message, id); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
