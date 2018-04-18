@@ -37,7 +37,7 @@ public class Multicast extends Thread {
 				default:
 					System.err.println("Error: Choosing server to send multicast message.");
 			}
-			//Envia al Servidor que sea
+			//TODO Envia al Servidor que sea
 			
 			randomDelay();
 		}

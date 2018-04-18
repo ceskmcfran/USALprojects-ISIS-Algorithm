@@ -6,12 +6,9 @@ import java.util.Comparator;
 import comparators.CompareOrder;
 
 public class Tail {
-	//Arraylist para guardar mensajes
 	private ArrayList<Message> tail;
 	
-	//Constructor
 	public Tail(){
-		//Creamos el ArrayList
 		tail = new ArrayList<Message>();	
 	}
 	
@@ -25,25 +22,25 @@ public class Tail {
 		    return tail;
 	}
 	
-	//Método para añadir mensaje
+	//aï¿½adir mensaje
 	public void addToTail(Message msg){
 		tail.add(msg);
 	}
 	
-	//Método para obtener mensaje
+	//obtener mensaje
 	public Message getFromTail(){
 		Message msg = tail.get(0);
 		return msg;	
 	}
 	
-	//Método para extraer un mensaje de la cola, quedando por tanto eliminado
+	//extraer un mensaje de la cola, quedando por tanto eliminado
 	public Message extractFromTail(){
 		Message msg = tail.get(0);//Obtenemos el mensaje
 		tail.remove(0);//Eliminamos de la cola
 		return msg;
 	}
 	
-	//Método para mostrar por pantalla los mensajes que hay en la cola
+	//mostrar por pantalla los mensajes que hay en la cola
 	public void listMessages(){
 		for(int i =0; i< tail.size();i++){
 			Message msg = tail.get(i);
@@ -51,12 +48,12 @@ public class Tail {
 		}
 	}
 	
-	//Método para cola vacía
+	//cola vacï¿½a
 	public Boolean tailIsEmpty(){
 		return tail.isEmpty();
 	}
 	
-	//Método para obtener un mensaje específico mediante id de la cola
+	//obtener un mensaje especï¿½fico mediante id de la cola
 	public Message getSpecificMessage(String id){
 		Message msg = new Message();
 		for(int i=0;i<tail.size();i++){
@@ -67,7 +64,7 @@ public class Tail {
 		return msg;
 	}
 	
-	//Reordenación de la cola
+	//Reordenaciï¿½n de la cola
 	public void reorderTail(){
 		Collections.sort(tail,new CompareOrder());
 	}
