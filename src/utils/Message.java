@@ -1,33 +1,27 @@
 package utils;
 
 public class Message {
-	//Atributos del mensaje
 	private String id;
 	private String content;
 	private String state;
 	private int order;
 	private int proposedOrder;
-	//Strings para los posibles estados de un mensaje
-	public static final String PROVISIONAL="PROVISIONAL";
-	public static final String DEFINITIVE="DEFINITIVE";
+	public static final String PROVISIONAL="PROVISIONAL"; //State
+	public static final String DEFINITIVE="DEFINITIVE"; //State
 	
 	
-	//Constructor
-	public Message(){
-		
-	}
-	//Constructor con parámetros
+	public Message(){ }
+
 	public Message(String id, String content, String state, int order, int proposedOrder){
 		this.id=id;
 		this.content=content;
 		this.state=state;
 		this.order=order;
-		this.proposedOrder=proposedOrder;
-		
+		this.proposedOrder=proposedOrder;	
 	}
-	/*Setters y Getter de la clase Message*/
-	//Setters
+
 	
+	//Getters and setters
 	public void setId(String id){
 		this.id=id;
 	}
@@ -48,8 +42,6 @@ public class Message {
 	public void setProposedOrder (int proposedOrder){
 		this.proposedOrder=proposedOrder;
 	}
-	
-	//Getters
 	
 	public String getId(){
 		return this.id;
