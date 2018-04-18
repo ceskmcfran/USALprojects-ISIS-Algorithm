@@ -5,9 +5,10 @@ public class Server {
 	
 	private static int ready = 0;
 	private Process process[]; //Será un vector de 2 elementos, ya que cada servidor tendrá 2 procesos
+	private int ip; //ID del servidor (de momento no es una IPv4
 	
-	public Server(){
-		
+	public Server(int ip){
+		this.ip = ip;
 	}
 	
 	/**
@@ -32,5 +33,30 @@ public class Server {
 			getClass().notifyAll();
 		}
 		
+	}
+	
+	/**
+	 * Selecciona el proceso al que le llegará el mensaje multicast
+	 */
+	public void dispatchMulticastMessage() {
+		//TODO recoger mensaje del multicast
+		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar multicast
+		
+	}
+	
+	/**
+	 * Selecciona el proceso al que le llegará el mensaje de propuesta
+	 */
+	public void dispatchProposed() {
+		//TODO recibir mensaje p2p
+		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar propuesta
+	}
+	
+	/**
+	 * Selecciona el proceso al que le llegará el mensaje de acuerdo
+	 */
+	public void dispatchAgreed() {
+		//TODO recibir mensaje p2p
+		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar acuerdo
 	}
 }
