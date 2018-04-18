@@ -1,42 +1,46 @@
 package controllers;
 
 import java.util.concurrent.ThreadLocalRandom;
-
 import utils.Message;
 
 public class Multicast extends Thread {
 
-	private Message message;
-	private String idProcess;
+	private Message message; //Mensaje a enviar
+	private String idSenderProcess; //ID del proceso que envia
+	private String idServer; //se guardará la id del servidor al que se va a enviar
 	
 	public Multicast(Message message, String id) {
 		this.message = message;
-		this.idProcess = id;
+		this.idSenderProcess = id;
 	}
 	
 	@Override
 	public void run() {
-		//Envio multicast
-		switch(idProcess) {
-			case "1":
-			case "2":
-				//Pertenece a server 1
-				break;
-				
-			case "3":
-			case "4":
-				//Pertenece a server 2
-				break;
-				
-			case "5":
-			case "6":
-				//Pertenece a server 3
-				break;
-				
-			default:
+		for(int idProcess=1; idProcess<=6; idProcess++) {
+			//Diferencio entre los procesos que voy a enviar para enviar a su servidor
+			switch(idProcess) {
+				case 1:
+				case 2:
+					idServer = "1";
+					break;
+					
+				case 3:
+				case 4:
+					idServer = "2";
+					break;
+					
+				case 5:
+				case 6:
+					idServer = "3";
+					break;
+					
+				default:
+					System.err.println("Error: Choosing server to send multicast message.");
+			}
+			//Envia al Servidor que sea
+			
+			randomDelay();
 		}
-		
-		randomDelay();
 	}
 	
 	/**
