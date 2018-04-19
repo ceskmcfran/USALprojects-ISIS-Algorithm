@@ -50,10 +50,10 @@ public class Process extends Thread{
 	 * 
 	 */
 	public void receiveMulticastMessage(Message message, String idMessage) {
-		Message msg = new Message();//serael mensaje recibido
-		lampTime = getLC1(lampTime);//Actualizar variable que es LC1
+		Message msg = new Message(message.getId(),message.getContent(),message.getState(),message.getOrder(),message.getProposedOrder());//serael mensaje recibido
+		lampTime = getLC1(lampTime);//Actualizar variable que es LC1 sumando 1
 		tail.addToTail(msg);//meter en cola con proposedOrder a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
-		//Envio de propuesta de orden (ordenseralampTime, iddeMSG) a pj
+		//Envio de propuesta de orden (ordenseralampTime, id de MSG) a pj
 	}
 	
 	/*
