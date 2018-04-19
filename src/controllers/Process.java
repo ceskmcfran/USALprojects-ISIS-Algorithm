@@ -8,12 +8,11 @@ public class Process extends Thread{
 	
 	private String id; //Process' id
 	private Tail tail; //Tail of the process
-	private int order = 0; //Order set in the algorithm WHY?
+	private int lampTime = 0; //Order set in the algorithm WHY? 
 	private double timestamp; //Timestamp to lampard algorithm
 	private String messageContent = "Soy " + id + " mi mensaje es "; //Content of the message
 	
-	public Process(String id) {
-		this.id = id;
+	public Process() {
 		///////tail = new Tail();
 	}
 	
@@ -51,20 +50,72 @@ public class Process extends Thread{
 	 * 
 	 */
 	public void receiveMulticastMessage(Message message, String idMessage) {
-		
+		Message msg = new Message();//serael mensaje recibido
+		lampTime = getLC1(lampTime);//Actualizar variable que es LC1
+		tail.addToTail(msg);//meter en cola con proposedOrder a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
+		//Envio de propuesta de orden (ordenseralampTime, iddeMSG) a pj
 	}
 	
-	/**
-	 * 
+	/*
+	 Mensaje de recepción
 	 */
 	public void receiveProposed(Message message) {
-		
+		int proposedorder;
+	//	mensaje.orden = max(mensaje.orden, ordenj//Se sacara del mensaje y se comparara
+	// Se está recibiendo un MSG (k, orderj) con k id y orderj orden del que te propone	
+		//Comparo orden recibido con el orden de mi mensaje, si este es mahyor actualizo sino no hago nada, quedara el que estaba
+	Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
+	if (message.getOrder() > msg.getOrder()){
+		msg.setOrder(message.getOrder());
+	}
+		lampTime = getLC2(msg.getOrder(), lampTime); //Calculo mi nuevo lamptime LC2 en funcion del timestamp del que recibo y del mio actual
+		proposedorder = msg.getProposedOrder()+1;//Actualizo proposed order con una propuesta recibida
+		msg.setProposedOrder(proposedorder);
+		if(msg.getProposedOrder()==6){// 6 porque es el numero de procesos ue tenemos
+			msg.setState("DEFINITIVE");
+			//multidifundir ACUERDO(k, mensaje.orden)
+		}				
 	}
 	
 	/**
 	 * 
 	 */
-	public void receiveAgreed(Message message) {
+	public void receiveAgreed(Message message) {//De nuevo se recibe id del mensaje y orden del proceso
+		Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
+		msg.setOrder(message.getOrder());
+		lampTime = getLC2(msg.getOrder(), lampTime);
+		msg.setState("DEFINITIVE");
+		tail.reorderTail();
+		//Sacamos sin eliminar el mensaje que haya primero en la cola
+		//Comprobamos si hay mensajes en la cola y extraemos el primero
+		if(!tail.tailIsEmpty()){
+			msg = tail.getFromTail();
+		}
+		
+		while(msg.getState()== "DEFINITIVE"){
+			//ENTREGA mensaje
+			tail.extractFromTail();
+			msg = tail.getFromTail();	
+		}
+		
+		
+	}
+	
+	public int getLC1 (int orden){
+		int lc1 = orden+1;
+		return lc1;
+		
+	}
+	
+	public int getLC2 (int timestamp, int ordenpropio) {
+		int lc2;
+		if (timestamp >= ordenpropio){
+			lc2 = timestamp+1;
+			
+		}else{
+			lc2= ordenpropio+1;
+		}
+		return lc2;
 		
 	}
 }
