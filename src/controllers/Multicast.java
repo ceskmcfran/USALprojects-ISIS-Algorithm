@@ -6,10 +6,10 @@ import utils.Message;
 public class Multicast extends Thread {
 
 	private Message message; //Mensaje a enviar
-	private String idSenderProcess; //ID del proceso que envia
+	private int idSenderProcess; //ID del proceso que envia
 	private String idServer; //se guardará la id del servidor al que se va a enviar
 	
-	public Multicast(Message message, String id) {
+	public Multicast(Message message, int id) {
 		this.message = message;
 		this.idSenderProcess = id;
 	}
@@ -20,16 +20,19 @@ public class Multicast extends Thread {
 			//Diferencio entre los procesos que voy a enviar para enviar a su servidor
 			switch(idProcess) {
 				case 1:
+					idServer = "1";
 				case 2:
 					idServer = "1";
 					break;
 					
 				case 3:
+					idServer = "2";
 				case 4:
 					idServer = "2";
 					break;
 					
 				case 5:
+					idServer = "3";
 				case 6:
 					idServer = "3";
 					break;
@@ -38,6 +41,7 @@ public class Multicast extends Thread {
 					System.err.println("Error: Choosing server to send multicast message.");
 			}
 			//TODO Envia al Servidor que sea
+			//Uri + client rellenar parametros con las querys correspondientes para el mensaje
 			
 			randomDelay();
 		}
