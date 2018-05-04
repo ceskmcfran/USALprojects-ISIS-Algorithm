@@ -3,7 +3,7 @@ package controllers;
 public class Server {
 	//Levanto las 3 instancias de los servidores dependiendo de los parametros que me pase el "main-cliente-script"
 	
-	private static int ready = 0;
+	private static int ready = 0;//numero de procesos preparados
 	private Process process[]; //Será un vector de 2 elementos, ya que cada servidor tendrá 2 procesos
 	private int ip; //ID del servidor (de momento no es una IPv4
 	
@@ -41,7 +41,7 @@ public class Server {
 	public void dispatchMulticastMessage() {
 		//TODO recoger mensaje del multicast
 		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar multicast
-		
+		//
 	}
 	
 	/**
