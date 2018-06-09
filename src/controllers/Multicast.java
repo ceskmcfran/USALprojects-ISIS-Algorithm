@@ -1,6 +1,8 @@
 package controllers;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
+
 import utils.Message;
 
 public class Multicast extends Thread {
@@ -8,15 +10,20 @@ public class Multicast extends Thread {
 	private Message message; //Mensaje a enviar
 	private int idSenderProcess; //ID del proceso que envia
 	private String idServer; //se guardar√° la id del servidor al que se va a enviar
+	private Semaphore controlMulticast;
 	
-	public Multicast(Message message, int id) {
+	public Multicast(Message message, int id, Semaphore controlMulticast) {
 		this.message = message;
 		this.idSenderProcess = id;
+		this.controlMulticast=controlMulticast;
 	}
 	
 	@Override
 	public void run() {
 		for(int idProcess=1; idProcess<=6; idProcess++) {
+			//Client y uri para el envÌo
+			//Client client=ClientBuilder.newClient();
+			
 			//Diferencio entre los procesos que voy a enviar para enviar a su servidor
 			switch(idProcess) {
 				case 1:
@@ -45,6 +52,8 @@ public class Multicast extends Thread {
 			
 			randomDelay();
 		}
+		//Release del semaforo para dar por terminada la multidifusiÛn
+		controlMulticast.release();
 	}
 	
 	/**
