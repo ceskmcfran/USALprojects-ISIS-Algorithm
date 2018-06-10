@@ -2,6 +2,7 @@ package controllers;
 
 import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
 @Singleton
 @Path("server")
@@ -36,11 +37,17 @@ public class Server {
 		
 	}
 	
+	//TODO aceptar en el cliente las request con texto plano
 	@GET
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("create")
 	public void createInstance(@DefaultValue("null") @QueryParam(value = "params") String params) {
+		if(params == null) {
+			//TODO retornar al cliente que no se han metido los parametros necesarios (aunque tambien controlarlo en el cliente) así protegemos en 2 ambitos contra inyecciones
+		}
 		//params es lo que recibe del cliente directamente.
 		//Los parametros seran: ?????????
+		
 	}
 	
 	/**

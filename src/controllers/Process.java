@@ -20,6 +20,8 @@ public class Process extends Thread{
 		this.id=id;
 		tail = new Tail();
 		//Inicializar semaforos
+		
+		//TODO sacar inicializaciÃ³n de semaforos a un metodo
 		controlOrder = new Semaphore(1);
 		controlTail = new Semaphore(1);
 		controlMulticast = new Semaphore(0);
@@ -92,7 +94,7 @@ public class Process extends Thread{
 	}
 	
 	/*
-	 Mensaje de recepción
+	 Mensaje de recepciï¿½n
 	 */
 	public void receiveProposed(Message message) {
 	int proposedorder;
@@ -159,7 +161,7 @@ public class Process extends Thread{
 		
 	}
 	
-	/* Métodos para la gestión de los semaforos */
+	/* Mï¿½todos para la gestiï¿½n de los semaforos */
 	private void acquireSemOrder (){
 		try {
 			controlOrder.acquire(1);
