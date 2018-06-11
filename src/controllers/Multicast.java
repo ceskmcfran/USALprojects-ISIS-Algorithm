@@ -21,7 +21,7 @@ public class Multicast extends Thread {
 	@Override
 	public void run() {
 		for(int idProcess=1; idProcess<=6; idProcess++) {
-			//Client y uri para el envío
+			//Client y uri para el envï¿½o
 			//Client client=ClientBuilder.newClient();
 			
 			//Diferencio entre los procesos que voy a enviar para enviar a su servidor
@@ -47,12 +47,11 @@ public class Multicast extends Thread {
 				default:
 					System.err.println("Error: Choosing server to send multicast message.");
 			}
-			//TODO Envia al Servidor que sea
-			//Uri + client rellenar parametros con las querys correspondientes para el mensaje
+			//TODO REST: /multicast. Envia al Servidor que sea
 			
 			randomDelay();
 		}
-		//Release del semaforo para dar por terminada la multidifusión
+		//Release del semaforo para dar por terminada la multidifusiï¿½n
 		controlMulticast.release();
 	}
 	

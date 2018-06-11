@@ -47,17 +47,18 @@ public class Server {
 		}
 		//params es lo que recibe del cliente directamente.
 		//Los parametros seran: ?????????
-		
+		//TODO separar dependiendo de los parametros y crear los hilos (procesos)
 	}
 	
 	/**
 	 * Selecciona el proceso al que le llegará el mensaje multicast
 	 */
 	@GET
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("multicast")
 	public void dispatchMulticastMessage() {
-		//TODO recoger mensaje del multicast
-		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar multicast
+		//TODO REST: recoger mensaje
+		//TODO elegir el servidor dependiendo del proceso al que se envie y llamar a receiveMulticastMessage
 		//
 	}
 	
@@ -65,9 +66,10 @@ public class Server {
 	 * Selecciona el proceso al que le llegará el mensaje de propuesta
 	 */
 	@GET
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("propose")
 	public void dispatchProposed() {
-		//TODO recibir mensaje p2p
+		//TODO REST: recoger mensaje
 		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar propuesta
 	}
 	
@@ -75,9 +77,10 @@ public class Server {
 	 * Selecciona el proceso al que le llegará el mensaje de acuerdo
 	 */
 	@GET
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("agree")
 	public void dispatchAgreed() {
-		//TODO recibir mensaje p2p
+		//TODO REST: recoger mensaje
 		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar acuerdo
 	}
 }

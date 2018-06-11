@@ -32,8 +32,7 @@ public class Process extends Thread{
 		
 		//Asginar ips asociadas 
 		
-		//Mediante Rest avisar de que el proceso esta listo para el comienzo
-		
+		//TODO REST: /synch
 		
 		//Repetir 100 veces
 		for(int i = 1; i<=100; i++) {
@@ -84,7 +83,7 @@ public class Process extends Thread{
 		releaseSemTail();
 		}
 		//Envio de propuesta de orden (orden, idMessage) a pj
-		//Aqui se realiza todo lo del uri y client, y se rellenan los parametros con el mensaje que ira al servidor como propuesta
+		//TODO REST: /propose
 		//Ademas hay que diferenciar a que ip de servidor envias
 		// Una vez se entregue se llama al metodo para escribr en fichero simulando la entrega
 	}
@@ -107,7 +106,7 @@ public class Process extends Thread{
 		if(msg.getProposedOrder()==6){// 6 porque es el numero de procesos que tenemos
 			msg.setState("DEFINITIVE");//ya habra recibido todas las propuestas
 			//multidifundir ACUERDO(k, mensaje.orden)
-			//De 0 a 6 se  realiza client y uri construyendo la ip que corresponde
+			//TODO REST: /agree
 		}				
 	}
 	
