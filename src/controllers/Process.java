@@ -20,11 +20,7 @@ public class Process extends Thread{
 		this.id=id;
 		tail = new Tail();
 		//Inicializar semaforos
-		
-		//TODO sacar inicialización de semaforos a un metodo
-		controlOrder = new Semaphore(1);
-		controlTail = new Semaphore(1);
-		controlMulticast = new Semaphore(0);
+		initSem();
 	}
 	
 	@Override
@@ -162,6 +158,11 @@ public class Process extends Thread{
 	}
 	
 	/* M�todos para la gesti�n de los semaforos */
+	private void initSem() {
+		controlOrder = new Semaphore(1);
+		controlTail = new Semaphore(1);
+		controlMulticast = new Semaphore(0);
+	}
 	private void acquireSemOrder (){
 		try {
 			controlOrder.acquire(1);
