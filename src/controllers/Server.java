@@ -4,12 +4,14 @@ import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+import utils.Message;
+
 @Singleton
 @Path("server")
 public class Server {
 	private static int ready = 0;//numero de procesos preparados
 	private Process process[] = new Process[2]; //Será un vector de 2 elementos, ya que cada servidor tendrá 2 procesos
-	private int whoami; //ID del servidor (de momento no es una IPv4
+	private int whoami; //ID del servidor
 	private boolean isISIS;
 
 	/**
@@ -87,21 +89,74 @@ public class Server {
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("multicast")
-	public void dispatchMulticastMessage() {
-		//TODO REST: recoger mensaje
-		//TODO elegir el servidor dependiendo del proceso al que se envie y llamar a receiveMulticastMessage
-		//
+	public void dispatchMulticastMessage(
+			@QueryParam(value="idProcess") int idProcess,
+			@QueryParam(value="idMessage") String idMessage,
+			@QueryParam(value="bodyMessage") String bodyMessage,
+			@QueryParam(value="orderMessage") int orderMessage,
+			@QueryParam(value="propOrderMessage") int propOrderMessage,
+			@QueryParam(value="stateMessage") String stateMessage) {
+		
+		//TODO ver si el "stateMessage" tiene que ser provisional o lo que se le pasa
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage);
+		
+		if(whoami == 0){
+			if(idProcess == 1){
+				process[0].receiveMulticastMessage(message);
+			}else if(idProcess == 2) {
+				process[1].receiveMulticastMessage(message);
+			}
+		}else if (whoami == 1){
+			if(idProcess == 3){
+				process[0].receiveMulticastMessage(message);
+			}else if(idProcess == 4) {
+				process[1].receiveMulticastMessage(message);
+			}
+		}else if (whoami == 2){
+			if(idProcess == 5){
+				process[0].receiveMulticastMessage(message);
+			}else if(idProcess == 6) {
+				process[1].receiveMulticastMessage(message);
+			}
+		}
 	}
-
+	
 	/**
 	 * Selecciona el proceso al que le llegará el mensaje de propuesta
 	 */
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("propose")
-	public void dispatchProposed() {
-		//TODO REST: recoger mensaje
-		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar propuesta
+	public void dispatchProposed(
+			@QueryParam(value="idProcess") int idProcess,
+			@QueryParam(value="idMessage") String idMessage,
+			@QueryParam(value="bodyMessage") String bodyMessage,
+			@QueryParam(value="orderMessage") int orderMessage,
+			@QueryParam(value="propOrderMessage") int propOrderMessage,
+			@QueryParam(value="stateMessage") String stateMessage) {
+		
+		//TODO ver si el "stateMessage" tiene que ser provisional o lo que se le pasa
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage);
+		
+		if(whoami == 0){
+			if(idProcess == 1){
+				process[0].receiveProposed(message);
+			}else if(idProcess == 2) {
+				process[1].receiveProposed(message);
+			}
+		}else if (whoami == 1){
+			if(idProcess == 3){
+				process[0].receiveProposed(message);
+			}else if(idProcess == 4) {
+				process[1].receiveProposed(message);
+			}
+		}else if (whoami == 2){
+			if(idProcess == 5){
+				process[0].receiveProposed(message);
+			}else if(idProcess == 6) {
+				process[1].receiveProposed(message);
+			}
+		}
 	}
 
 	/**
@@ -110,9 +165,35 @@ public class Server {
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("agree")
-	public void dispatchAgreed() {
-		//TODO REST: recoger mensaje
-		//TODO elegir el servidor dependiendo del proceso al que se envie y enviar acuerdo
+	public void dispatchAgreed(
+			@QueryParam(value="idProcess") int idProcess,
+			@QueryParam(value="idMessage") String idMessage,
+			@QueryParam(value="bodyMessage") String bodyMessage,
+			@QueryParam(value="orderMessage") int orderMessage,
+			@QueryParam(value="propOrderMessage") int propOrderMessage,
+			@QueryParam(value="stateMessage") String stateMessage) {
+		
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage);
+		
+		if(whoami == 0){
+			if(idProcess == 1){
+				process[0].receiveAgreed(message);
+			}else if(idProcess == 2) {
+				process[1].receiveAgreed(message);
+			}
+		}else if (whoami == 1){
+			if(idProcess == 3){
+				process[0].receiveAgreed(message);
+			}else if(idProcess == 4) {
+				process[1].receiveAgreed(message);
+			}
+		}else if (whoami == 2){
+			if(idProcess == 5){
+				process[0].receiveAgreed(message);
+			}else if(idProcess == 6) {
+				process[1].receiveAgreed(message);
+			}
+		}
 	}
 
 	/**
@@ -129,4 +210,5 @@ public class Server {
 
 		return eachParam;
 	}
+	
 }

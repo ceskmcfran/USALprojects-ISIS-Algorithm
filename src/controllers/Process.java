@@ -15,7 +15,7 @@ import utils.Tail;
 import utils.Writer;
 
 public class Process extends Thread{
-
+//TODO revisar todos los bucles for para si empiezan en 1 o 0
 	private int id; //Process' id
 	private int idParent; //Id parent server
 	private String ipServer[] = new String[3];
@@ -59,7 +59,7 @@ public class Process extends Thread{
 			releaseSemOrder();
 
 			//Multidifundir el mensaje ‘Pxx nnn’ donde xx es el identificador de proceso y nnn el número de mensaje
-			Multicast multicast = new Multicast(message, id, controlMulticast); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
+			Multicast multicast = new Multicast(message, id, controlMulticast, ipServer, idParent); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
 			multicast.start();
 			//Esperar a la multidifusion **Semaforo
 			acquireSemMulti();
@@ -83,7 +83,7 @@ public class Process extends Thread{
 	/**
 	 * Duerme el proceso durante 1.0 y 1.5 segundos
 	 */
-	public void randomSleep() {
+	private void randomSleep() {
 		double rand = ThreadLocalRandom.current().nextDouble(1.0, 1.5);
 		try {
 			Thread.sleep((long)rand*1000);
@@ -93,9 +93,9 @@ public class Process extends Thread{
 	}
 
 	/**
-	 *
+	 * Mensaje de propuesta
 	 */
-	public void receiveMulticastMessage(Message message, String idMessage) {
+	public void receiveMulticastMessage(Message message) {
 		Message msg = new Message(message.getId(),message.getContent(),message.getState(),message.getOrder(),message.getProposedOrder());//serael mensaje recibido
 		acquireSemOrder();
 		order = getLC1(order);//Actualizar variable que es LC1 sumando 1
@@ -105,42 +105,61 @@ public class Process extends Thread{
 		int x = Integer.parseInt(msg.getId());
 		//Si soy yo meto el mensaje recibido a la cola
 		if(x != this.id){
-		acquireSemTail();
-		tail.addToTail(msg);//meter en cola, tendra proposedOrder a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
-		releaseSemTail();
+			acquireSemTail();
+			tail.addToTail(msg);//meter en cola, tendra proposedOrder a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
+			releaseSemTail();
 		}
-		//Envio de propuesta de orden (orden, idMessage) a pj
-		//TODO REST: /propose
-		//Ademas hay que diferenciar a que ip de servidor envias
+		//Mandamos 
+		Client client=ClientBuilder.newClient();
+		URI uri=UriBuilder.fromUri(http + ipServer[idParent] + api).build();
+		WebTarget target = client.target(uri);
+		target.path("rest").path("server/propose")
+		.queryParam("idProcess", id)
+		.queryParam("idMessage", msg.getId())
+		.queryParam("bodyMessage", msg.getContent())
+		.queryParam("orderMessage", msg.getOrder())
+		.queryParam("propOrderMessage", msg.getProposedOrder())
+		.queryParam("stateMessage", msg.getState())
+		.request(MediaType.TEXT_PLAIN).get(String.class);
 		// Una vez se entregue se llama al metodo para escribr en fichero simulando la entrega
 	}
 
 	/**
-	 * Mensaje de recepci�n
+	 * Mensaje de recepcion
 	 */
 	public void receiveProposed(Message message) {
-	int proposedorder;
-	//Comparo orden recibido con el orden de mi mensaje, si este es mahyor actualizo sino no hago nada, quedara el que estaba
-	acquireSemTail();
-	Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
-	releaseSemTail();
-	if (message.getOrder() > msg.getOrder()){
-		msg.setOrder(message.getOrder());
-	}
+		int proposedorder;
+		//Comparo orden recibido con el orden de mi mensaje, si este es mahyor actualizo sino no hago nada, quedara el que estaba
+		acquireSemTail();
+		Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
+		releaseSemTail();
+		if (message.getOrder() > msg.getOrder()){
+			msg.setOrder(message.getOrder());
+		}
 		order = getLC2(msg.getOrder(), order); //Calculo mi nuevo lamptime LC2 en funcion del timestamp del que recibo y del mio actual
 		proposedorder = msg.getProposedOrder()+1;//Actualizo proposed order pues hay propuesta recibida
 		msg.setProposedOrder(proposedorder);
 		if(msg.getProposedOrder()==6){// 6 porque es el numero de procesos que tenemos
 			msg.setState("DEFINITIVE");//ya habra recibido todas las propuestas
-			//multidifundir ACUERDO(k, mensaje.orden)
-			//TODO REST: /agree
+			//Mandamos el acuerdo
+			Client client=ClientBuilder.newClient();
+			URI uri=UriBuilder.fromUri(http + ipServer[idParent] + api).build();
+			WebTarget target = client.target(uri);
+			target.path("rest").path("server/agree")
+			.queryParam("idProcess", id)
+			.queryParam("idMessage", msg.getId())
+			.queryParam("bodyMessage", msg.getContent())
+			.queryParam("orderMessage", msg.getOrder())
+			.queryParam("propOrderMessage", msg.getProposedOrder())
+			.queryParam("stateMessage", msg.getState())
+			.request(MediaType.TEXT_PLAIN).get(String.class);
 		}
 	}
 
 	/**
-	 *
+	 * Mensaje de acuerdo
 	 */
-	public void receiveAgreed(Message message) {
+	public void receiveAgreed(Message message) { //TODO revisar si es syncronized
 		acquireSemTail();
 		Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
 		releaseSemTail();
@@ -166,6 +185,9 @@ public class Process extends Thread{
 		}
 	}
 
+	/*
+	 * Metodos para la gestion de tiempos lógicos de Lamport
+	 */
 	public int getLC1 (int orden){
 		return orden++;
 
@@ -183,12 +205,15 @@ public class Process extends Thread{
 
 	}
 
-	/* M�todos para la gesti�n de los semaforos */
+	/*
+	 *  Metodos para la gestion de los semaforos 
+	 */
 	private void initSem() {
 		controlOrder = new Semaphore(1);
 		controlTail = new Semaphore(1);
 		controlMulticast = new Semaphore(0);
 	}
+	
 	private void acquireSemOrder (){
 		try {
 			controlOrder.acquire(1);
