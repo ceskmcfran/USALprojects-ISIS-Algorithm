@@ -1,39 +1,54 @@
 package controllers;
 
+import java.net.URI;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
 import utils.Message;
 import utils.Tail;
 import utils.Writer;
 
 public class Process extends Thread{
-	
+
 	private int id; //Process' id
+	private int idParent; //Id parent server
+	private String ipServer[] = new String[3];
 	private Tail tail; //Tail of the process
-	private int order = 0; //Order set in the algorithm WHY? 
+	private int order = 0;
 	private String messageContent = "Soy " + id + " mi mensaje es "; //Content of the message
 	private Semaphore controlOrder;
 	private Semaphore controlTail;
 	private Semaphore controlMulticast;
-	
-	public Process(int id) {
-		this.id=id;
+	private final String http = "http://";
+	private final String api = ":8080/ISIS-Algorithm/"; //TODO OJO CAMBIAR CON LO DE web.xml
+
+	public Process(int id, int idParent, String ip1, String ip2, String ip3, boolean isISIS) {
+		this.id = id;
+		this.idParent = idParent;
 		tail = new Tail();
-		//Inicializar semaforos
-		initSem();
+		this.ipServer[0] = ip1;
+		this.ipServer[1] = ip2;
+		this.ipServer[2] = ip3;
+		initSem(); //Inicializar semaforos
 	}
-	
+
 	@Override
 	public void run() {
 		//Obtener parametros del proceso para operar de forma correcta
 		//Crear la clase Writer asociada
 		Writer writer = new Writer();
 		//Crear nuevo fichero, para cada ejecucion llamando al metodo de la clase Writer
-		
-		//Asginar ips asociadas 
-		
-		//TODO REST: /synch
-		
+
+		//Asginar ips asociadas
+
+		callAPI(ipServer[0], "server/synch");
+
 		//Repetir 100 veces
 		for(int i = 1; i<=100; i++) {
 			//Crear un identificador único de mensaje mediante el numero de mensaje y el identificador de proceso
@@ -42,7 +57,7 @@ public class Process extends Thread{
 			acquireSemOrder();
 			Message message = new Message(idMessage, messageContent, "PROVISIONAL", order, 0);//el 0 es el proporder sera 0 a inicio hasta que lleguen proposiciones del mismo
 			releaseSemOrder();
-			
+
 			//Multidifundir el mensaje ‘Pxx nnn’ donde xx es el identificador de proceso y nnn el número de mensaje
 			Multicast multicast = new Multicast(message, id, controlMulticast); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
 			multicast.start();
@@ -54,6 +69,18 @@ public class Process extends Thread{
 	}
 	
 	/**
+	 * Llama a la API sin parametros
+	 * @param ip
+	 * @param apiPath
+	 */
+	public void callAPI(String ip, String apiPath) {
+		Client client=ClientBuilder.newClient();
+		URI uri=UriBuilder.fromUri(http + ip + api).build();
+		WebTarget target = client.target(uri);
+		target.path("rest").path(apiPath).request(MediaType.TEXT_PLAIN).get(String.class);
+	}
+
+	/**
 	 * Duerme el proceso durante 1.0 y 1.5 segundos
 	 */
 	public void randomSleep() {
@@ -64,16 +91,16 @@ public class Process extends Thread{
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 */
 	public void receiveMulticastMessage(Message message, String idMessage) {
 		Message msg = new Message(message.getId(),message.getContent(),message.getState(),message.getOrder(),message.getProposedOrder());//serael mensaje recibido
 		acquireSemOrder();
 		order = getLC1(order);//Actualizar variable que es LC1 sumando 1
 		releaseSemOrder();
-		
+
 		//Vemos con id si el mensaje recibido es mio, para saber si metemos o no en la cola el mismo
 		int x = Integer.parseInt(msg.getId());
 		//Si soy yo meto el mensaje recibido a la cola
@@ -87,9 +114,9 @@ public class Process extends Thread{
 		//Ademas hay que diferenciar a que ip de servidor envias
 		// Una vez se entregue se llama al metodo para escribr en fichero simulando la entrega
 	}
-	
-	/*
-	 Mensaje de recepci�n
+
+	/**
+	 * Mensaje de recepci�n
 	 */
 	public void receiveProposed(Message message) {
 	int proposedorder;
@@ -107,11 +134,11 @@ public class Process extends Thread{
 			msg.setState("DEFINITIVE");//ya habra recibido todas las propuestas
 			//multidifundir ACUERDO(k, mensaje.orden)
 			//TODO REST: /agree
-		}				
+		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 */
 	public void receiveAgreed(Message message) {
 		acquireSemTail();
@@ -126,36 +153,36 @@ public class Process extends Thread{
 		if(!tail.tailIsEmpty()){
 			msg = tail.getFromTail();
 		}
-		
+
 		while(msg.getState()== "DEFINITIVE"){
 			//ENTREGA mensaje simulando con escritura en fichero
 			if(!tail.tailIsEmpty()){
-				tail.extractFromTail();			
+				tail.extractFromTail();
 			}
 			if(!tail.tailIsEmpty()){
-				msg = tail.getFromTail();		
+				msg = tail.getFromTail();
 			}
 			//************************
-		}	
+		}
 	}
-	
+
 	public int getLC1 (int orden){
 		return orden++;
-		
+
 	}
-	
+
 	public int getLC2 (int timestamp, int ordenpropio) {
 		int lc2;
 		if (timestamp >= ordenpropio){
 			lc2 = timestamp+1;
-			
+
 		}else{
 			lc2= ordenpropio+1;
 		}
 		return lc2;
-		
+
 	}
-	
+
 	/* M�todos para la gesti�n de los semaforos */
 	private void initSem() {
 		controlOrder = new Semaphore(1);
@@ -170,11 +197,11 @@ public class Process extends Thread{
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void releaseSemOrder (){
 		controlOrder.release();
 	}
-	
+
 	private void acquireSemTail (){
 		try {
 			controlTail.acquire();
@@ -183,11 +210,11 @@ public class Process extends Thread{
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void releaseSemTail (){
 		controlTail.release();
 	}
-	
+
 	private void acquireSemMulti (){
 		try {
 			controlMulticast.acquire(1);
@@ -196,10 +223,10 @@ public class Process extends Thread{
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void releaseSemMulti(){
 		controlMulticast.release();
 	}
-	
-	
+
+
 }
