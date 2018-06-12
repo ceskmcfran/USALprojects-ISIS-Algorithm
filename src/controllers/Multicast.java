@@ -1,66 +1,61 @@
 package controllers;
 
+import java.net.URI;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 
 import utils.Message;
 
 public class Multicast extends Thread {
 
 	private Message message; //Mensaje a enviar
-	private int idSenderProcess; //ID del proceso que envia
+	private int idProcess; //ID del proceso que envia
 	private String idServer; //se guardar√° la id del servidor al que se va a enviar
 	private Semaphore controlMulticast;
-	
-	public Multicast(Message message, int id, Semaphore controlMulticast) {
+	private String[] ipServer; //Array de ips
+	private int idParent; //ID del server padre del proceso
+	private final String http = "http://";
+	private final String api = ":8080/ISIS-Algorithm/"; //TODO OJO CAMBIAR CON LO DE web.xml
+
+	public Multicast(Message message, int id, Semaphore controlMulticast, String[] ipServer, int idParent) {
 		this.message = message;
-		this.idSenderProcess = id;
+		this.idProcess = id;
 		this.controlMulticast=controlMulticast;
+		this.ipServer = ipServer;
+		this.idParent = idParent;
 	}
-	
+
 	@Override
 	public void run() {
 		for(int idProcess=1; idProcess<=6; idProcess++) {
-			//Client y uri para el envÌo
-			//Client client=ClientBuilder.newClient();
-			
-			//Diferencio entre los procesos que voy a enviar para enviar a su servidor
-			switch(idProcess) {
-				case 1:
-					idServer = "1";
-				case 2:
-					idServer = "1";
-					break;
-					
-				case 3:
-					idServer = "2";
-				case 4:
-					idServer = "2";
-					break;
-					
-				case 5:
-					idServer = "3";
-				case 6:
-					idServer = "3";
-					break;
-					
-				default:
-					System.err.println("Error: Choosing server to send multicast message.");
-			}
-			//TODO Envia al Servidor que sea
-			//Uri + client rellenar parametros con las querys correspondientes para el mensaje
+			Client client=ClientBuilder.newClient();
+			URI uri=UriBuilder.fromUri(http + ipServer[idParent] + api).build();
+			WebTarget target = client.target(uri);
+			target.path("rest").path("server/multicast")
+			.queryParam("idProcess", idProcess)
+			.queryParam("idMessage", message.getId())
+			.queryParam("bodyMessage", message.getContent())
+			.queryParam("orderMessage", message.getOrder())
+			.queryParam("propOrderMessage", message.getProposedOrder())
+			.queryParam("stateMessage", message.getState())
+			.request(MediaType.TEXT_PLAIN).get(String.class);
 			
 			randomDelay();
 		}
-		//Release del semaforo para dar por terminada la multidifusiÛn
-		controlMulticast.release();
+		controlMulticast.release(); //Release del semaforo para dar por terminada la multidifusion
 	}
-	
+
 	/**
 	 * Hace un delay de un tiempo aleatorio entre 0.2 y 0.5
 	 * Usado para hacer delay entre los envios multicast de cada proceso
 	 */
-	public void randomDelay() {
+	private void randomDelay() {
 		double rand = ThreadLocalRandom.current().nextDouble(0.2, 0.5);
 		try {
 			Thread.sleep((long)rand*1000);
@@ -68,5 +63,5 @@ public class Multicast extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
+
 }
