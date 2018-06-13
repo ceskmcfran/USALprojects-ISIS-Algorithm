@@ -28,7 +28,7 @@ public class Process extends Thread{
 	private final String http = "http://";
 	private final String api = ":8080/ISIS-Algorithm/"; //TODO OJO CAMBIAR CON LO DE web.xml
 
-	public Process(int id, int idParent, String ip1, String ip2, String ip3, boolean isISIS) {
+	public Process(int id, int idParent, String ip1, String ip2, String ip3, int isISIS) {
 		this.id = id;
 		this.idParent = idParent;
 		tail = new Tail();
@@ -55,11 +55,11 @@ public class Process extends Thread{
 			String idMessage = "P" + id + " " + i; //<P(id) i>
 			messageContent = messageContent + idMessage;
 			acquireSemOrder();
-			Message message = new Message(idMessage, messageContent, "PROVISIONAL", order, 0);//el 0 es el proporder sera 0 a inicio hasta que lleguen proposiciones del mismo
+			Message message = new Message(idMessage, messageContent, "PROVISIONAL", order, 0, id);//el 0 es el proporder sera 0 a inicio hasta que lleguen proposiciones del mismo
 			releaseSemOrder();
 
 			//Multidifundir el mensaje ‘Pxx nnn’ donde xx es el identificador de proceso y nnn el número de mensaje
-			Multicast multicast = new Multicast(message, id, controlMulticast, ipServer, idParent); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
+			Multicast multicast = new Multicast(message, id, controlMulticast, ipServer); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
 			multicast.start();
 			//Esperar a la multidifusion **Semaforo
 			acquireSemMulti();
@@ -67,7 +67,7 @@ public class Process extends Thread{
 			randomSleep();
 		}
 	}
-	
+
 	/**
 	 * Llama a la API sin parametros
 	 * @param ip
@@ -96,7 +96,8 @@ public class Process extends Thread{
 	 * Mensaje de propuesta
 	 */
 	public void receiveMulticastMessage(Message message) {
-		Message msg = new Message(message.getId(),message.getContent(),message.getState(),message.getOrder(),message.getProposedOrder());//serael mensaje recibido
+		//TODO cambiar las asignaciones de Message = new Message
+		Message msg = new Message(message.getId(),message.getContent(),message.getState(),message.getOrder(),message.getProposedOrder(), message.getIdSender());//serael mensaje recibido
 		acquireSemOrder();
 		order = getLC1(order);//Actualizar variable que es LC1 sumando 1
 		releaseSemOrder();
@@ -109,12 +110,13 @@ public class Process extends Thread{
 			tail.addToTail(msg);//meter en cola, tendra proposedOrder a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
 			releaseSemTail();
 		}
-		//Mandamos 
+		//Mandamos
 		Client client=ClientBuilder.newClient();
 		URI uri=UriBuilder.fromUri(http + ipServer[idParent] + api).build();
 		WebTarget target = client.target(uri);
 		target.path("rest").path("server/propose")
 		.queryParam("idProcess", id)
+		.queryParam("idSender", msg.getIdSender())
 		.queryParam("idMessage", msg.getId())
 		.queryParam("bodyMessage", msg.getContent())
 		.queryParam("orderMessage", msg.getOrder())
@@ -147,6 +149,7 @@ public class Process extends Thread{
 			WebTarget target = client.target(uri);
 			target.path("rest").path("server/agree")
 			.queryParam("idProcess", id)
+			.queryParam("idSender", msg.getIdSender())
 			.queryParam("idMessage", msg.getId())
 			.queryParam("bodyMessage", msg.getContent())
 			.queryParam("orderMessage", msg.getOrder())
@@ -206,14 +209,14 @@ public class Process extends Thread{
 	}
 
 	/*
-	 *  Metodos para la gestion de los semaforos 
+	 *  Metodos para la gestion de los semaforos
 	 */
 	private void initSem() {
 		controlOrder = new Semaphore(1);
 		controlTail = new Semaphore(1);
 		controlMulticast = new Semaphore(0);
 	}
-	
+
 	private void acquireSemOrder (){
 		try {
 			controlOrder.acquire(1);
