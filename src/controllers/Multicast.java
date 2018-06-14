@@ -50,7 +50,7 @@ public class Multicast extends Thread {
 			.queryParam("idMessage", message.getId())
 			.queryParam("bodyMessage", message.getContent())
 			.queryParam("orderMessage", message.getOrder())
-			.queryParam("propOrderMessage", message.getProposedOrder())
+			.queryParam("propOrderMessage", message.getPropositions())
 			.queryParam("stateMessage", message.getState())
 			.request(MediaType.TEXT_PLAIN).get(String.class);
 

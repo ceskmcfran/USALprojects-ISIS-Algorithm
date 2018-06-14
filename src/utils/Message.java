@@ -6,19 +6,16 @@ public class Message {
 	private String state;
 	private int idSender;
 	private int order;
-	private int proposedOrder;
-	public static final String PROVISIONAL="PROVISIONAL"; //State
-	public static final String DEFINITIVE="DEFINITIVE"; //State
+	private int propositions;
+	public static final String PROVISIONAL="PROVISIONAL";
+	public static final String DEFINITIVE="DEFINITIVE";
 
-
-	public Message(){ }
-
-	public Message(String id, String content, String state, int order, int proposedOrder, int idSender){
+	public Message(String id, String content, String state, int order, int propositions, int idSender){
 		this.id=id;
 		this.content=content;
 		this.state=state;
 		this.order=order;
-		this.proposedOrder=proposedOrder;
+		this.propositions=propositions;
 		this.idSender = idSender;
 	}
 
@@ -41,8 +38,8 @@ public class Message {
 		this.order=order;
 	}
 
-	public void setProposedOrder (int proposedOrder){
-		this.proposedOrder=proposedOrder;
+	public void setPropositions (int propositions){
+		this.propositions=propositions;
 	}
 
 	public String getId(){
@@ -61,8 +58,8 @@ public class Message {
 		return this.order;
 	}
 
-	public int getProposedOrder(){
-		return this.proposedOrder;
+	public int getPropositions(){
+		return this.propositions;
 	}
 
 	public int getIdSender() {

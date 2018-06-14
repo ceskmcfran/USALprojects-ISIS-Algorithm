@@ -2,8 +2,8 @@ package utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import comparators.CompareOrder;
+import java.util.Comparator;
 
 public class Tail {
 	private ArrayList<Message> tail;
@@ -12,59 +12,86 @@ public class Tail {
 		tail = new ArrayList<Message>();	
 	}
 	
-	//Setter
+	/**
+	 * Setter tail
+	 * @param tailList
+	 */
 	public void setTailList(ArrayList<Message> tailList) {
-		  this.tail = tailList;
+		this.tail = tailList;
 	}
 	
-	//Getter
+	/**
+	 * Getter tail
+	 * @return tail
+	 */
     public ArrayList<Message> getTailList() {
-		    return tail;
+    	return tail;
 	}
 	
-	//a�adir mensaje
-	public void addToTail(Message msg){
-		tail.add(msg);
+	/**
+	 * Add message
+	 * @param message
+	 */
+	public void addToTail(Message message){
+		tail.add(message);
 	}
 	
-	//obtener mensaje
+	/**
+	 * Get message
+	 * @return
+	 */
 	public Message getFromTail(){
-		Message msg = tail.get(0);
-		return msg;	
+		Message message = tail.get(0);
+		return message;	
 	}
 	
-	//extraer un mensaje de la cola, quedando por tanto eliminado
+	/**
+	 * Extract from tail and remove the extracted message
+	 * @return message
+	 */
 	public Message extractFromTail(){
-		Message msg = tail.get(0);//Obtenemos el mensaje
-		tail.remove(0);//Eliminamos de la cola
-		return msg;
+		Message message = tail.get(0);
+		tail.remove(0);
+		return message;
 	}
 	
-	//mostrar por pantalla los mensajes que hay en la cola
-	public void listMessages(){
+	/**
+	 * DEBUG: Display messages of tail 
+	 * @param idProcess
+	 */
+	public void listMessages(int idProcess){
 		for(int i =0; i< tail.size();i++){
-			Message msg = tail.get(i);
-			System.out.println("\nMessage ID: "+ msg.getId()+ " State: " + msg.getState()+ " Order: " + msg.getOrder());
+			Message message = tail.get(i);
+			System.out.println("\n (Soy " + idProcess + "ID: "+ message.getId()+ " State " + message.getState()+ " Order: " + message.getOrder());
 		}
 	}
 	
-	//cola vac�a
-	public Boolean tailIsEmpty(){
+	/**
+	 * Returns true if the tail is empty
+	 * @return boolean
+	 */
+	public Boolean isEmpty(){
 		return tail.isEmpty();
 	}
 	
-	//obtener un mensaje espec�fico mediante id de la cola
-	public Message getSpecificMessage(String id){
-		Message msg = new Message();
+	/**
+	 * Get a specific message by its ID
+	 * @param idMessage
+	 * @return message
+	 */
+	public Message getSpecificMessage(String idMessage){
+		Message message = new Message();
 		for(int i=0;i<tail.size();i++){
-			if (tail.get(i).getId().equals(id)){
-				msg=tail.get(i);
+			if (tail.get(i).getId().equals(idMessage)){
+				message=tail.get(i);
 			}
 		}
-		return msg;
+		return message;
 	}
 	
-	//Reordenaci�n de la cola
+	/**
+	 * Reorder the tail
+	 */
 	public void reorderTail(){
 		Collections.sort(tail,new CompareOrder());
 	}

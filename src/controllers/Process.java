@@ -119,7 +119,7 @@ public class Process extends Thread{
 					message.getContent(),
 					message.getState(),
 					order,
-					message.getProposedOrder(),
+					message.getPropositions(),
 					message.getIdSender());
 
 			//Vemos con id si el mensaje recibido es mio, para saber si metemos o no en la cola el mismo
@@ -140,7 +140,7 @@ public class Process extends Thread{
 			.queryParam("idMessage", msg.getId())
 			.queryParam("bodyMessage", msg.getContent())
 			.queryParam("orderMessage", msg.getOrder())
-			.queryParam("propOrderMessage", msg.getProposedOrder())
+			.queryParam("propOrderMessage", msg.getPropositions())
 			.queryParam("stateMessage", msg.getState())
 			.request(MediaType.TEXT_PLAIN).get(String.class);
 		}
@@ -159,9 +159,9 @@ public class Process extends Thread{
 			msg.setOrder(message.getOrder());
 		}
 		order = getLC2(msg.getOrder(), order); //Calculo mi nuevo lamptime LC2 en funcion del timestamp del que recibo y del mio actual
-		proposedorder = msg.getProposedOrder()+1;//Actualizo proposed order pues hay propuesta recibida
-		msg.setProposedOrder(proposedorder);
-		if(msg.getProposedOrder()==6){// 6 porque es el numero de procesos que tenemos
+		proposedorder = msg.getPropositions()+1;//Actualizo proposed order pues hay propuesta recibida
+		msg.setPropositions(proposedorder);
+		if(msg.getPropositions()==6){// 6 porque es el numero de procesos que tenemos
 			msg.setState("DEFINITIVE");//ya habra recibido todas las propuestas
 			//Mandamos el acuerdo
 			Client client=ClientBuilder.newClient();
@@ -173,7 +173,7 @@ public class Process extends Thread{
 			.queryParam("idMessage", msg.getId())
 			.queryParam("bodyMessage", msg.getContent())
 			.queryParam("orderMessage", msg.getOrder())
-			.queryParam("propOrderMessage", msg.getProposedOrder())
+			.queryParam("propOrderMessage", msg.getPropositions())
 			.queryParam("stateMessage", msg.getState())
 			.request(MediaType.TEXT_PLAIN).get(String.class);
 		}
@@ -192,16 +192,16 @@ public class Process extends Thread{
 		tail.reorderTail();
 		//Sacamos sin eliminar el mensaje que haya primero en la cola
 		//Comprobamos si hay mensajes en la cola y extraemos el primero
-		if(!tail.tailIsEmpty()){
+		if(!tail.isEmpty()){
 			msg = tail.getFromTail();
 		}
 
 		while(msg.getState()== "DEFINITIVE"){
 			//ENTREGA mensaje simulando con escritura en fichero
-			if(!tail.tailIsEmpty()){
+			if(!tail.isEmpty()){
 				tail.extractFromTail();
 			}
-			if(!tail.tailIsEmpty()){
+			if(!tail.isEmpty()){
 				msg = tail.getFromTail();
 			}
 			//************************
