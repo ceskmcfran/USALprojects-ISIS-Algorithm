@@ -10,6 +10,8 @@ public class Message {
 	public static final String PROVISIONAL="PROVISIONAL";
 	public static final String DEFINITIVE="DEFINITIVE";
 
+	public Message(){ }
+
 	public Message(String id, String content, String state, int order, int propositions, int idSender){
 		this.id=id;
 		this.content=content;
