@@ -12,7 +12,7 @@ public class Server {
 	private static int ready = 0;//numero de procesos preparados
 	private Process process[] = new Process[2]; //Será un vector de 2 elementos, ya que cada servidor tendrá 2 procesos
 	private int whoami; //ID del servidor
-	private boolean isISIS;
+	private int isISIS;
 
 	/**
 	 * Sincronizar comienzo de todos los procesos al iniciar
@@ -45,7 +45,7 @@ public class Server {
 	 * @param params
 	 * params = whoami;ip1;ip2;ip3;isISIS
 	 */
-	/* TODO Ojo el cliente ejecuta el script con ./.... ip1 ip2 ip3 ISIS
+	/* Ojo el cliente ejecuta el script con ./.... ip1 ip2 ip3 ISIS
 	 * Tras esto en el cliente deberemos crear la Query del cliente al servidor en la que mendiante un for(3)
 	 * mandará a cada servidor una query del tipo: indiceFor;ip1;ip2;ip3;isISIS y la mandará a args[x] (cada una de las ip)
 	 * Con ello el server1 siempre será ip1, server2 será ip2 y server3 será ip3*/
@@ -59,7 +59,7 @@ public class Server {
 
 		String eachParam[] = splitParams(params, numParams); //sacar fuera eachParamy poner static ???????????
 		whoami = Integer.parseInt(eachParam[0]);
-		isISIS = Boolean.parseBoolean(eachParam[4]);
+		isISIS = Integer.parseInt(eachParam[4]);
 
 		//Diferencio que numero soy yo
 		if(whoami == 0){
@@ -91,15 +91,16 @@ public class Server {
 	@Path("multicast")
 	public void dispatchMulticastMessage(
 			@QueryParam(value="idProcess") int idProcess,
+			@QueryParam(value="idSender") int idSender,
 			@QueryParam(value="idMessage") String idMessage,
 			@QueryParam(value="bodyMessage") String bodyMessage,
 			@QueryParam(value="orderMessage") int orderMessage,
 			@QueryParam(value="propOrderMessage") int propOrderMessage,
 			@QueryParam(value="stateMessage") String stateMessage) {
-		
+
 		//TODO ver si el "stateMessage" tiene que ser provisional o lo que se le pasa
-		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage);
-		
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage, idSender);
+
 		if(whoami == 0){
 			if(idProcess == 1){
 				process[0].receiveMulticastMessage(message);
@@ -120,7 +121,7 @@ public class Server {
 			}
 		}
 	}
-	
+
 	/**
 	 * Selecciona el proceso al que le llegará el mensaje de propuesta
 	 */
@@ -129,15 +130,16 @@ public class Server {
 	@Path("propose")
 	public void dispatchProposed(
 			@QueryParam(value="idProcess") int idProcess,
+			@QueryParam(value="idSender") int idSender,
 			@QueryParam(value="idMessage") String idMessage,
 			@QueryParam(value="bodyMessage") String bodyMessage,
 			@QueryParam(value="orderMessage") int orderMessage,
 			@QueryParam(value="propOrderMessage") int propOrderMessage,
 			@QueryParam(value="stateMessage") String stateMessage) {
-		
+
 		//TODO ver si el "stateMessage" tiene que ser provisional o lo que se le pasa
-		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage);
-		
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage, idSender);
+
 		if(whoami == 0){
 			if(idProcess == 1){
 				process[0].receiveProposed(message);
@@ -167,14 +169,15 @@ public class Server {
 	@Path("agree")
 	public void dispatchAgreed(
 			@QueryParam(value="idProcess") int idProcess,
+			@QueryParam(value="idSender") int idSender,
 			@QueryParam(value="idMessage") String idMessage,
 			@QueryParam(value="bodyMessage") String bodyMessage,
 			@QueryParam(value="orderMessage") int orderMessage,
 			@QueryParam(value="propOrderMessage") int propOrderMessage,
 			@QueryParam(value="stateMessage") String stateMessage) {
-		
-		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage);
-		
+
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage, idSender);
+
 		if(whoami == 0){
 			if(idProcess == 1){
 				process[0].receiveAgreed(message);
@@ -210,5 +213,5 @@ public class Server {
 
 		return eachParam;
 	}
-	
+
 }
