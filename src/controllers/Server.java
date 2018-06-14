@@ -45,7 +45,7 @@ public class Server {
 	 * @param params
 	 * params = whoami;ip1;ip2;ip3;isISIS
 	 */
-	/* TODO Ojo el cliente ejecuta el script con ./.... ip1 ip2 ip3 ISIS
+	/* Ojo el cliente ejecuta el script con ./.... ip1 ip2 ip3 ISIS
 	 * Tras esto en el cliente deberemos crear la Query del cliente al servidor en la que mendiante un for(3)
 	 * mandará a cada servidor una query del tipo: indiceFor;ip1;ip2;ip3;isISIS y la mandará a args[x] (cada una de las ip)
 	 * Con ello el server1 siempre será ip1, server2 será ip2 y server3 será ip3*/

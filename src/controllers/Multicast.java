@@ -41,7 +41,7 @@ public class Multicast extends Thread {
 			}else if(idProcess == 4 || idProcess == 5){
 				sendTo = 2;
 			}
-			Client client=ClientBuilder.newClient();
+			Client client = ClientBuilder.newClient();
 			URI uri=UriBuilder.fromUri(http + ipServer[sendTo] + api).build();
 			WebTarget target = client.target(uri);
 			target.path("rest").path("server/multicast")
