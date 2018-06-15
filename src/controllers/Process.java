@@ -21,14 +21,15 @@ public class Process extends Thread{
 	private String ipServer[] = new String[3];
 	private Tail tail; //Tail of the process
 	private int order = 0;
-	private String messageContent; //Content of the message
+	private String messageContent = "Contenido del mensaje"; //Content of the message
 	private Semaphore controlOrder;
 	private Semaphore controlTail;
 	private Semaphore controlMulticast;
 	private int isISIS;
 	private final String http = "http://";
 	private final String api = ":8080/ISIS-Algorithm/"; //TODO OJO CAMBIAR CON LO DE web.xml
-
+	private final int maxProcesses = 6;
+	
 	public Process(int id, int idParent, String ip1, String ip2, String ip3, int isISIS) {
 		this.id = id;
 		this.idParent = idParent;
@@ -57,9 +58,7 @@ public class Process extends Thread{
 		callAPI(ipServer[0], "server/synch");
 
 		for(int i = 0; i<100; i++) {
-			//Crear un identificador único de mensaje mediante el numero de mensaje y el identificador de proceso
 			String idMessage = "P" + id + " " + i; //<P(id) i>
-			messageContent = idMessage;
 			acquireSemOrder();
 			Message message = new Message(idMessage, messageContent, "PROVISIONAL", order, 0, id);//el 0 es el proporder sera 0 a inicio hasta que lleguen proposiciones del mismo
 			releaseSemOrder();
@@ -68,12 +67,10 @@ public class Process extends Thread{
 			tail.addToTail(message);
 			releaseSemTail();
 
-			//Multidifundir el mensaje ‘Pxx nnn’ donde xx es el identificador de proceso y nnn el número de mensaje
 			Multicast multicast = new Multicast(message, id, controlMulticast, ipServer); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
 			multicast.start();
-			//Esperar a la multidifusion **Semaforo
 			acquireSemMulti();
-			//Dormir un tiempo aleatorio entre 1.0 y 1.5 seg
+			
 			randomSleep();
 		}
 	}
@@ -112,27 +109,36 @@ public class Process extends Thread{
 		}
 		else{
 			acquireSemOrder();
-			order = getLC1(order);//Actualizar variable que es LC1 sumando 1
+			order = getLC1(order); //Actualizar variable que es LC1 sumando 1
 			releaseSemOrder();
 
 			Message msg = new Message(message.getId(),
 					message.getContent(),
 					message.getState(),
 					order,
-					message.getProposedOrder(),
+					message.getPropositions(),
 					message.getIdSender());
 
-			//Vemos con id si el mensaje recibido es mio, para saber si metemos o no en la cola el mismo
-			int x = Integer.parseInt(msg.getId());
-			//Si soy yo meto el mensaje recibido a la cola
-			if(x != this.id){
+			//Si yo no soy el sender: meto el mensaje recibido a la cola meter en cola, tendra propositions a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
+			if(msg.getIdSender() != id){
 				acquireSemTail();
-				tail.addToTail(msg);//meter en cola, tendra proposedOrder a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
+				tail.addToTail(msg);
 				releaseSemTail();
 			}
-			//Mandamos
+
+			int sendTo = 0;
+			if (msg.getIdSender() == 0 || msg.getIdSender() == 1){
+				sendTo = 0;
+			}else if(msg.getIdSender() == 2 || msg.getIdSender() == 3){
+				sendTo = 1;
+			}else if(msg.getIdSender() == 4 || msg.getIdSender() == 5){
+				sendTo = 2;
+			}else {
+				System.err.println("Error: Send propose to process in receiveMulticastMessage");
+			}
+			
 			Client client=ClientBuilder.newClient();
-			URI uri=UriBuilder.fromUri(http + ipServer[idParent] + api).build();
+			URI uri=UriBuilder.fromUri(http + ipServer[sendTo] + api).build();
 			WebTarget target = client.target(uri);
 			target.path("rest").path("server/propose")
 			.queryParam("idProcess", id)
@@ -140,7 +146,7 @@ public class Process extends Thread{
 			.queryParam("idMessage", msg.getId())
 			.queryParam("bodyMessage", msg.getContent())
 			.queryParam("orderMessage", msg.getOrder())
-			.queryParam("propOrderMessage", msg.getProposedOrder())
+			.queryParam("propOrderMessage", msg.getPropositions())
 			.queryParam("stateMessage", msg.getState())
 			.request(MediaType.TEXT_PLAIN).get(String.class);
 		}
@@ -150,61 +156,85 @@ public class Process extends Thread{
 	 * Mensaje de recepcion
 	 */
 	public void receiveProposed(Message message) {
-		int proposedorder;
-		//Comparo orden recibido con el orden de mi mensaje, si este es mahyor actualizo sino no hago nada, quedara el que estaba
-		acquireSemTail();
-		Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
-		releaseSemTail();
-		if (message.getOrder() > msg.getOrder()){
+		acquireSemOrder();
+		this.order=getLC2(this.order, message.getOrder());
+		releaseSemOrder();
+		
+		//Saco el mensaje que sea de la cola para comparar
+		Message msg = tail.getSpecificMessage(message.getId());
+
+		if (message.getOrder() >  msg.getOrder()){
 			msg.setOrder(message.getOrder());
 		}
-		order = getLC2(msg.getOrder(), order); //Calculo mi nuevo lamptime LC2 en funcion del timestamp del que recibo y del mio actual
-		proposedorder = msg.getProposedOrder()+1;//Actualizo proposed order pues hay propuesta recibida
-		msg.setProposedOrder(proposedorder);
-		if(msg.getProposedOrder()==6){// 6 porque es el numero de procesos que tenemos
-			msg.setState("DEFINITIVE");//ya habra recibido todas las propuestas
-			//Mandamos el acuerdo
-			Client client=ClientBuilder.newClient();
-			URI uri=UriBuilder.fromUri(http + ipServer[idParent] + api).build();
-			WebTarget target = client.target(uri);
-			target.path("rest").path("server/agree")
-			.queryParam("idProcess", id)
-			.queryParam("idSender", msg.getIdSender())
-			.queryParam("idMessage", msg.getId())
-			.queryParam("bodyMessage", msg.getContent())
-			.queryParam("orderMessage", msg.getOrder())
-			.queryParam("propOrderMessage", msg.getProposedOrder())
-			.queryParam("stateMessage", msg.getState())
-			.request(MediaType.TEXT_PLAIN).get(String.class);
+		msg.setPropositions(msg.getPropositions()+1);
+
+		if(msg.getPropositions() == maxProcesses){// 6 porque es el numero de procesos que tenemos
+			for(int idProcess=0; idProcess<6; idProcess++) {
+				int sendTo = 0;
+				if (idProcess == 0 || idProcess == 1){
+					sendTo = 0;
+				}else if(idProcess == 2 || idProcess == 3){
+					sendTo = 1;
+				}else if(idProcess == 4 || idProcess == 5){
+					sendTo = 2;
+				}else {
+					System.err.println("Error: Send multicast to process");
+				}
+				
+//DEBUG (si falla): Revisar esto de los idSender/idProcess y si hay que poner semaforo
+				Client client=ClientBuilder.newClient();
+				URI uri=UriBuilder.fromUri(http + ipServer[sendTo] + api).build();
+				WebTarget target = client.target(uri);
+				target.path("rest").path("server/agree")
+				.queryParam("idProcess", idProcess)
+				.queryParam("idSender", msg.getIdSender())
+				.queryParam("idMessage", msg.getId())
+				.queryParam("bodyMessage", msg.getContent())
+				.queryParam("orderMessage", msg.getOrder())
+				.queryParam("propOrderMessage", msg.getPropositions())
+				.queryParam("stateMessage", msg.getState())
+				.request(MediaType.TEXT_PLAIN).get(String.class);
+			}
 		}
 	}
 
 	/**
 	 * Mensaje de acuerdo
 	 */
-	public void receiveAgreed(Message message) { //TODO revisar si es syncronized
+	public synchronized void receiveAgreed(Message message) {
+		acquireSemOrder();
+		this.order=getLC2(this.order, message.getOrder());
+		releaseSemOrder();
+
 		acquireSemTail();
-		Message msg = tail.getSpecificMessage(message.getId());//Saco el mensaje que sea de la cola para comparar
-		releaseSemTail();
+		Message msg = tail.getSpecificMessage(message.getId());
 		msg.setOrder(message.getOrder());
-		order = getLC2(msg.getOrder(), order);
 		msg.setState("DEFINITIVE");
+		releaseSemTail();
+//DEBUG (si falla): Esto a lo mejor tiene que ser una seccion critica entera, revisar las secciones criticas
+		acquireSemTail();
 		tail.reorderTail();
-		//Sacamos sin eliminar el mensaje que haya primero en la cola
-		//Comprobamos si hay mensajes en la cola y extraemos el primero
-		if(!tail.tailIsEmpty()){
+		releaseSemTail();
+		
+		acquireSemTail();
+		if(!tail.isEmpty()){
 			msg = tail.getFromTail();
 		}
+		releaseSemTail();
+		
+		if(msg.getId() != null) {
+			while(msg.getState() == "DEFINITIVE"){
+				//TODO cambiar path para linux
+				Writer wr = new Writer();
+				wr.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Msg: " + msg.getId() + " )\n");
 
-		while(msg.getState()== "DEFINITIVE"){
-			//ENTREGA mensaje simulando con escritura en fichero
-			if(!tail.tailIsEmpty()){
-				tail.extractFromTail();
+				acquireSemTail();
+				if(!tail.isEmpty()){
+					tail.removeFromTail();
+					msg = tail.getFromTail();
+				}
+				releaseSemTail();
 			}
-			if(!tail.tailIsEmpty()){
-				msg = tail.getFromTail();
-			}
-			//************************
 		}
 	}
 
