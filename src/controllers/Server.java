@@ -147,8 +147,8 @@ public class Server {
 		int idProcessToSend;
 		if((message.getIdSender()==0)||(message.getIdSender()==2)||(message.getIdSender()==4))
 			idProcessToSend = 0;
-			else
-				idProcessToSend =1;
+		else
+			idProcessToSend = 1;
 		
 		process[idProcessToSend].receiveProposed(message);
 	}
