@@ -150,7 +150,7 @@ public class Server {
 			else
 				idProcessToSend =1;
 		
-		process[idSender].receiveProposed(message);
+		process[idProcessToSend].receiveProposed(message);
 	}
 
 	/**
