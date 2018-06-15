@@ -46,13 +46,11 @@ public class Tail {
 	}
 	
 	/**
-	 * Extract from tail and remove the extracted message
+	 * Remove the tail message
 	 * @return message
 	 */
-	public Message extractFromTail(){
-		Message message = tail.get(0);
+	public void removeFromTail(){
 		tail.remove(0);
-		return message;
 	}
 	
 	/**

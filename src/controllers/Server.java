@@ -9,10 +9,11 @@ import utils.Message;
 @Singleton
 @Path("server")
 public class Server {
-	private static int ready = 0;//numero de procesos preparados
+	private static int ready = 0; //numero de procesos preparados
 	private Process process[] = new Process[2]; //Será un vector de 2 elementos, ya que cada servidor tendrá 2 procesos
 	private int whoami; //ID del servidor
 	private int isISIS;
+	private final int maxProcesses = 6;
 
 	/**
 	 * Sincronizar comienzo de todos los procesos al iniciar
@@ -24,7 +25,7 @@ public class Server {
 		synchronized(getClass()) {
 			ready++;
 		}
-		if(ready != 6) {
+		if(ready != maxProcesses) {
 			synchronized(getClass()) {
 				try {
 					getClass().wait();
@@ -34,8 +35,9 @@ public class Server {
 			}
 		}
 		else {
-			//¿¿¿¿¿¿Necesita SC como el wait???????
-			getClass().notifyAll();
+			synchronized(getClass()) {
+				getClass().notifyAll();
+			}
 		}
 
 	}
@@ -45,10 +47,6 @@ public class Server {
 	 * @param params
 	 * params = whoami;ip1;ip2;ip3;isISIS
 	 */
-	/* Ojo el cliente ejecuta el script con ./.... ip1 ip2 ip3 ISIS
-	 * Tras esto en el cliente deberemos crear la Query del cliente al servidor en la que mendiante un for(3)
-	 * mandará a cada servidor una query del tipo: indiceFor;ip1;ip2;ip3;isISIS y la mandará a args[x] (cada una de las ip)
-	 * Con ello el server1 siempre será ip1, server2 será ip2 y server3 será ip3*/
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("create")
@@ -61,7 +59,6 @@ public class Server {
 		whoami = Integer.parseInt(eachParam[0]);
 		isISIS = Integer.parseInt(eachParam[4]);
 
-		//Diferencio que numero soy yo
 		if(whoami == 0){
 			process[0] = new Process(0, whoami, eachParam[1], eachParam[2], eachParam[3], isISIS);
 			process[1] = new Process(1, whoami, eachParam[1], eachParam[2], eachParam[3], isISIS);
@@ -95,28 +92,27 @@ public class Server {
 			@QueryParam(value="idMessage") String idMessage,
 			@QueryParam(value="bodyMessage") String bodyMessage,
 			@QueryParam(value="orderMessage") int orderMessage,
-			@QueryParam(value="propOrderMessage") int propOrderMessage,
+			@QueryParam(value="propositions") int propositions,
 			@QueryParam(value="stateMessage") String stateMessage) {
 
-		//TODO ver si el "stateMessage" tiene que ser provisional o lo que se le pasa
-		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage, idSender);
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propositions, idSender);
 
 		if(whoami == 0){
-			if(idProcess == 1){
+			if(idProcess == 0){
 				process[0].receiveMulticastMessage(message);
-			}else if(idProcess == 2) {
+			}else if(idProcess == 1) {
 				process[1].receiveMulticastMessage(message);
 			}
 		}else if (whoami == 1){
-			if(idProcess == 3){
+			if(idProcess == 2){
 				process[0].receiveMulticastMessage(message);
-			}else if(idProcess == 4) {
+			}else if(idProcess == 3) {
 				process[1].receiveMulticastMessage(message);
 			}
 		}else if (whoami == 2){
-			if(idProcess == 5){
+			if(idProcess == 4){
 				process[0].receiveMulticastMessage(message);
-			}else if(idProcess == 6) {
+			}else if(idProcess == 5) {
 				process[1].receiveMulticastMessage(message);
 			}
 		}
@@ -134,31 +130,12 @@ public class Server {
 			@QueryParam(value="idMessage") String idMessage,
 			@QueryParam(value="bodyMessage") String bodyMessage,
 			@QueryParam(value="orderMessage") int orderMessage,
-			@QueryParam(value="propOrderMessage") int propOrderMessage,
+			@QueryParam(value="propositions") int propositions,
 			@QueryParam(value="stateMessage") String stateMessage) {
 
-		//TODO ver si el "stateMessage" tiene que ser provisional o lo que se le pasa
-		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage, idSender);
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propositions, idSender);
 
-		if(whoami == 0){
-			if(idProcess == 1){
-				process[0].receiveProposed(message);
-			}else if(idProcess == 2) {
-				process[1].receiveProposed(message);
-			}
-		}else if (whoami == 1){
-			if(idProcess == 3){
-				process[0].receiveProposed(message);
-			}else if(idProcess == 4) {
-				process[1].receiveProposed(message);
-			}
-		}else if (whoami == 2){
-			if(idProcess == 5){
-				process[0].receiveProposed(message);
-			}else if(idProcess == 6) {
-				process[1].receiveProposed(message);
-			}
-		}
+		process[idSender].receiveProposed(message);
 	}
 
 	/**
@@ -173,27 +150,27 @@ public class Server {
 			@QueryParam(value="idMessage") String idMessage,
 			@QueryParam(value="bodyMessage") String bodyMessage,
 			@QueryParam(value="orderMessage") int orderMessage,
-			@QueryParam(value="propOrderMessage") int propOrderMessage,
+			@QueryParam(value="propositions") int propositions,
 			@QueryParam(value="stateMessage") String stateMessage) {
 
-		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propOrderMessage, idSender);
+		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propositions, idSender);
 
 		if(whoami == 0){
-			if(idProcess == 1){
+			if(idProcess == 0){
 				process[0].receiveAgreed(message);
-			}else if(idProcess == 2) {
+			}else if(idProcess == 1) {
 				process[1].receiveAgreed(message);
 			}
 		}else if (whoami == 1){
-			if(idProcess == 3){
+			if(idProcess == 2){
 				process[0].receiveAgreed(message);
-			}else if(idProcess == 4) {
+			}else if(idProcess == 3) {
 				process[1].receiveAgreed(message);
 			}
 		}else if (whoami == 2){
-			if(idProcess == 5){
+			if(idProcess == 4){
 				process[0].receiveAgreed(message);
-			}else if(idProcess == 6) {
+			}else if(idProcess == 5) {
 				process[1].receiveAgreed(message);
 			}
 		}

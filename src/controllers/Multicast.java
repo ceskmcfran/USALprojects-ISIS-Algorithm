@@ -40,7 +40,10 @@ public class Multicast extends Thread {
 				sendTo = 1;
 			}else if(idProcess == 4 || idProcess == 5){
 				sendTo = 2;
+			}else {
+				System.err.println("Error: Send multicast to process");
 			}
+			
 			Client client = ClientBuilder.newClient();
 			URI uri=UriBuilder.fromUri(http + ipServer[sendTo] + api).build();
 			WebTarget target = client.target(uri);
