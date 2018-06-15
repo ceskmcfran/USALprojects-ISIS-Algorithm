@@ -1,0 +1,11 @@
+172.20.2.4
+172.20.1.32
+172.20.3.105
+
+http://172.20.2.4:8080/ISIS-Algorithm/rest/server/create?params=0;172.20.2.4;172.20.1.32;172.20.3.105;0
+http://172.20.1.32:8080/ISIS-Algorithm/rest/server/create?params=1;172.20.2.4;172.20.1.32;172.20.3.105;0
+http://172.20.3.105:8080/ISIS-Algorithm/rest/server/create?params=2;172.20.2.4;172.20.1.32;172.20.3.105;0
+
+http://172.20.2.4:8080/ISIS-Algorithm/rest/server/create?params=0;172.20.2.4;172.20.1.32;172.20.3.105;1
+http://172.20.1.32:8080/ISIS-Algorithm/rest/server/create?params=1;172.20.2.4;172.20.1.32;172.20.3.105;1
+http://172.20.3.105:8080/ISIS-Algorithm/rest/server/create?params=2;172.20.2.4;172.20.1.32;172.20.3.105;1
