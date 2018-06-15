@@ -44,15 +44,14 @@ public class Process extends Thread{
 	@Override
 	public void run() {
 		//Crear la clase Writer asociada
+		//TODO cambiar path para linux
 		if(isISIS == 0){
-			Writer writer = new Writer();
-			//hacer lo que sea
-			//Crear nuevo fichero, para cada ejecucion llamando al metodo de la clase Writer
+		    Writer writer = new Writer();
+			writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Inicio de fichero sin isis\n");
 		}
 		else{
 			Writer writer = new Writer();
-			//hacer lo que sea
-			//Crear nuevo fichero, para cada ejecucion llamando al metodo de la clase Writer
+			writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Inicio de fichero con isis\n");
 		}
 
 		callAPI(ipServer[0], "server/synch");
@@ -103,9 +102,11 @@ public class Process extends Thread{
 	 * Mensaje de multicast
 	 */
 	public void receiveMulticastMessage(Message message) {
+		//TODO cambiar path para linux
 		if(isISIS == 0){
 			Writer writer = new Writer();
-			// Una vez se entregue se llama al metodo para escribr en fichero simulando la entrega
+			writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Msg: " + message.getId() + " )\n");
+			//Aqui es sin isis se escriben segun nos llegan
 		}
 		else{
 			acquireSemOrder();
@@ -225,8 +226,8 @@ public class Process extends Thread{
 		if(msg.getId() != null) {
 			while(msg.getState() == "DEFINITIVE"){
 				//TODO cambiar path para linux
-				Writer wr = new Writer();
-				wr.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Msg: " + msg.getId() + " )\n");
+				Writer writer = new Writer();
+				writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Msg: " + msg.getId() + " )\n");
 
 				acquireSemTail();
 				if(!tail.isEmpty()){
