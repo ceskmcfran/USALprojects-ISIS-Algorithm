@@ -21,7 +21,7 @@ public class Multicast extends Thread {
 	private String[] ipServer; //Array de ips
 	private int idParent; //ID del server padre del proceso
 	private final String http = "http://";
-	private final String api = ":8080/ISIS-Algorithm/"; //TODO OJO CAMBIAR CON LO DE web.xml
+	private final String api = ":8080/ISIS-Algorithm/";
 
 	public Multicast(Message message, int id, Semaphore controlMulticast, String[] ipServer) {
 		this.message = message;

@@ -15,12 +15,19 @@ public class Server {
 	private int isISIS;
 	private final int maxProcesses = 6;
 
+	@GET
+	@Path("hello")
+	public void helloWorld(){
+		System.out.println("HELLOWORLD\n");
+	}
+	
 	/**
 	 * Sincronizar comienzo de todos los procesos al iniciar
 	 */
 	@GET
 	@Path("synch")
 	public void synch() {
+		System.out.println("He llegao al synch");
 		//Esto será llamado por cada process antes del bucle
 		synchronized(getClass()) {
 			ready++;
@@ -48,14 +55,14 @@ public class Server {
 	 * params = whoami;ip1;ip2;ip3;isISIS
 	 */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
+	//@Produces(MediaType.TEXT_PLAIN)
 	@Path("create")
 	public void createInstance(
 			@DefaultValue("null")
-			@QueryParam(value = "params") String params,
-			@QueryParam(value = "numParams") int numParams){
+			@QueryParam(value = "params") String params){
 
-		String eachParam[] = splitParams(params, numParams); //sacar fuera eachParamy poner static ???????????
+		System.out.println("HE LLEGAO");
+		String eachParam[] = splitParams(params, 5); //sacar fuera eachParamy poner static ???????????
 		whoami = Integer.parseInt(eachParam[0]);
 		isISIS = Integer.parseInt(eachParam[4]);
 
@@ -84,7 +91,7 @@ public class Server {
 	 * Selecciona el proceso al que le llegará el mensaje multicast
 	 */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
+	//@Produces(MediaType.TEXT_PLAIN)
 	@Path("multicast")
 	public void dispatchMulticastMessage(
 			@QueryParam(value="idProcess") int idProcess,
@@ -97,6 +104,9 @@ public class Server {
 
 		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propositions, idSender);
 
+		System.out.println(idMessage);
+		System.out.println(bodyMessage);
+		
 		if(whoami == 0){
 			if(idProcess == 0){
 				process[0].receiveMulticastMessage(message);
@@ -122,7 +132,7 @@ public class Server {
 	 * Selecciona el proceso al que le llegará el mensaje de propuesta
 	 */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
+	//@Produces(MediaType.TEXT_PLAIN)
 	@Path("propose")
 	public void dispatchProposed(
 			@QueryParam(value="idProcess") int idProcess,
@@ -142,7 +152,7 @@ public class Server {
 	 * Selecciona el proceso al que le llegará el mensaje de acuerdo
 	 */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
+	//@Produces(MediaType.TEXT_PLAIN)
 	@Path("agree")
 	public void dispatchAgreed(
 			@QueryParam(value="idProcess") int idProcess,

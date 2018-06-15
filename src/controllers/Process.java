@@ -29,7 +29,7 @@ public class Process extends Thread{
 	private final String http = "http://";
 	private final String api = ":8080/ISIS-Algorithm/"; //TODO OJO CAMBIAR CON LO DE web.xml
 	private final int maxProcesses = 6;
-	
+
 	public Process(int id, int idParent, String ip1, String ip2, String ip3, int isISIS) {
 		this.id = id;
 		this.idParent = idParent;
@@ -43,20 +43,18 @@ public class Process extends Thread{
 
 	@Override
 	public void run() {
-		//Crear la clase Writer asociada
-		//TODO cambiar path para linux
 		if(isISIS == 0){
 		    Writer writer = new Writer();
-			writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Inicio de fichero sin isis\n");
+			writer.write("/home/i0919093/Escritorio/salida/fichero"+id+".txt", "Inicio de fichero sin isis\n");
 		}
 		else{
 			Writer writer = new Writer();
-			writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Inicio de fichero con isis\n");
+			writer.write("/home/i0919093/Escritorio/salida/fichero"+id+".txt", "Inicio de fichero con isis\n");
 		}
 
 		callAPI(ipServer[0], "server/synch");
-
-		for(int i = 0; i<100; i++) {
+System.out.printf("Soy %d, empiezo a emitir\n",this.id);
+		for(int i = 0; i<20; i++) {
 			String idMessage = "P" + id + " " + i; //<P(id) i>
 			acquireSemOrder();
 			Message message = new Message(idMessage, messageContent, "PROVISIONAL", order, 0, id);//el 0 es el proporder sera 0 a inicio hasta que lleguen proposiciones del mismo
@@ -69,7 +67,7 @@ public class Process extends Thread{
 			Multicast multicast = new Multicast(message, id, controlMulticast, ipServer); //¿¿¿¿Consideramos que solo uno puede hacer multicast a la vez????/
 			multicast.start();
 			acquireSemMulti();
-			
+
 			randomSleep();
 		}
 	}
@@ -102,10 +100,9 @@ public class Process extends Thread{
 	 * Mensaje de multicast
 	 */
 	public void receiveMulticastMessage(Message message) {
-		//TODO cambiar path para linux
 		if(isISIS == 0){
 			Writer writer = new Writer();
-			writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Msg: " + message.getId() + " )\n");
+			writer.write("/home/i0919093/Escritorio/salida/fichero"+id+".txt", "(Msg: " + message.getId() + " )\n");
 			//Aqui es sin isis se escriben segun nos llegan
 		}
 		else{
@@ -119,6 +116,8 @@ public class Process extends Thread{
 					order,
 					message.getPropositions(),
 					message.getIdSender());
+
+			System.out.printf("Mcast,soy %d msg id: %s, es de %d\n", this.id, msg.getId(), msg.getIdSender());
 
 			//Si yo no soy el sender: meto el mensaje recibido a la cola meter en cola, tendra propositions a 0 (Al inicio nadie habra mandado ninguna propuesta) y solo se usa en el proceso emisor
 			if(msg.getIdSender() != id){
@@ -137,7 +136,7 @@ public class Process extends Thread{
 			}else {
 				System.err.println("Error: Send propose to process in receiveMulticastMessage");
 			}
-			
+
 			Client client=ClientBuilder.newClient();
 			URI uri=UriBuilder.fromUri(http + ipServer[sendTo] + api).build();
 			WebTarget target = client.target(uri);
@@ -160,14 +159,17 @@ public class Process extends Thread{
 		acquireSemOrder();
 		this.order=getLC2(this.order, message.getOrder());
 		releaseSemOrder();
-		
+
 		//Saco el mensaje que sea de la cola para comparar
 		Message msg = tail.getSpecificMessage(message.getId());
 
+		
 		if (message.getOrder() >  msg.getOrder()){
 			msg.setOrder(message.getOrder());
 		}
 		msg.setPropositions(msg.getPropositions()+1);
+		
+		System.out.printf("PROP,soy %d msg id: %s, es de %d con prop %d\n", this.id, msg.getId(), msg.getIdSender(), msg.getPropositions());
 
 		if(msg.getPropositions() == maxProcesses){// 6 porque es el numero de procesos que tenemos
 			for(int idProcess=0; idProcess<6; idProcess++) {
@@ -181,7 +183,7 @@ public class Process extends Thread{
 				}else {
 					System.err.println("Error: Send multicast to process");
 				}
-				
+
 //DEBUG (si falla): Revisar esto de los idSender/idProcess y si hay que poner semaforo
 				Client client=ClientBuilder.newClient();
 				URI uri=UriBuilder.fromUri(http + ipServer[sendTo] + api).build();
@@ -206,33 +208,38 @@ public class Process extends Thread{
 		acquireSemOrder();
 		this.order=getLC2(this.order, message.getOrder());
 		releaseSemOrder();
-
 		acquireSemTail();
 		Message msg = tail.getSpecificMessage(message.getId());
 		msg.setOrder(message.getOrder());
 		msg.setState("DEFINITIVE");
 		releaseSemTail();
+		
+		System.out.printf("AGmsg, idmsg: %s, proc: %d",msg.getId(), this.id);
 //DEBUG (si falla): Esto a lo mejor tiene que ser una seccion critica entera, revisar las secciones criticas
 		acquireSemTail();
 		tail.reorderTail();
 		releaseSemTail();
-		
+
 		acquireSemTail();
 		if(!tail.isEmpty()){
 			msg = tail.getFromTail();
 		}
+		else{
+			msg.setId(null);
+		}
 		releaseSemTail();
-		
+
 		if(msg.getId() != null) {
 			while(msg.getState() == "DEFINITIVE"){
-				//TODO cambiar path para linux
 				Writer writer = new Writer();
-				writer.write("C:\\Users\\Dapuma\\Desktop\\salida\\fichero"+id+".txt", "(Msg: " + msg.getId() + " )\n");
+				writer.write("/home/i0919093/Escritorio/salida/fichero"+id+".txt", "(Msg: " + msg.getId() + " )\n");
 
 				acquireSemTail();
 				if(!tail.isEmpty()){
 					tail.removeFromTail();
-					msg = tail.getFromTail();
+					if(!tail.isEmpty()){
+						msg = tail.getFromTail();
+					}
 				}
 				releaseSemTail();
 			}
