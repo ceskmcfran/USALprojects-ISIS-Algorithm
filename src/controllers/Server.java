@@ -144,8 +144,13 @@ public class Server {
 			@QueryParam(value="stateMessage") String stateMessage) {
 
 		Message message = new Message(idMessage, bodyMessage, stateMessage, orderMessage, propositions, idSender);
-
-		process[idSender].receiveProposed(message);
+		int idProcessToSend;
+		if((message.getIdSender()==0)||(message.getIdSender()==2)||(message.getIdSender()==4))
+			idProcessToSend = 0;
+		else
+			idProcessToSend = 1;
+		
+		process[idProcessToSend].receiveProposed(message);
 	}
 
 	/**
